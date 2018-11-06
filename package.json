@@ -16,5 +16,11 @@
   "bugs": {
     "url": "https://github.com/Purerange/LIRI/issues"
   },
-  "homepage": "https://github.com/Purerange/LIRI#readme"
+  "homepage": "https://github.com/Purerange/LIRI#readme",
+  "dependencies": {
+    "dotenv": "^6.1.0",
+    "moment": "^2.22.2",
+    "node-spotify-api": "^1.0.7",
+    "request": "^2.88.0"
+  }
 }
