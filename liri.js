@@ -1,34 +1,16 @@
 require("dotenv").config();
 
 var spotifyIDs = require("./keys.js").spotify;
+var fs = require("fs");
+var request = require("request");
+var Spotify = require("node-spotify-api");
+
+var spotify = new Spotify(spotifyIDs);
 
 var nodeArgs = process.argv;
 
-var request = require("request");
 
 // console.log(spotifyIDs);
-
-// Collect command line arguments
-if (nodeArgs[2]) {
-    var action = nodeArgs[2];
-}
-
-if (nodeArgs[3]) {
-    var input = "";
-
-    for (var i = 3; i < nodeArgs.length; i++) {
-
-        if (i > 3 && i < nodeArgs.length) {
-
-            input = input + "+" + nodeArgs[i];
-
-        } else {
-
-            input += nodeArgs[i];
-
-        }
-    }
-}
 
 // console.log(nodeArgs);
 // console.log(action);
@@ -36,21 +18,23 @@ if (nodeArgs[3]) {
 
 
 // Determine which function we need to call
-switch (action) {
-    case "concert-this":
-        concertThis();
-        break;
-    case "spotify-this-song":
-        spotifyThis();
-        break;
-    case "movie-this":
-        movieThis();
-        break;
-    case "do-what-it-says":
-        doWhatItSays();
-        break;
-    default:
-        console.log("Invalid arguments. Please see documentation and try again.");
+function determine(action) {
+    switch (action) {
+        case "concert-this":
+            concertThis();
+            break;
+        case "spotify-this-song":
+            spotifyThis();
+            break;
+        case "movie-this":
+            movieThis();
+            break;
+        case "do-what-it-says":
+            doWhatItSays();
+            break;
+        default:
+            console.log("Invalid arguments. Please see documentation and try again.");
+    }
 }
 
 
@@ -71,8 +55,6 @@ function concertThis() {
 
     request(queryUrl, function(error, response, body) {
 
-        console.log(input);
-
         if (error) {
             return console.log(error);
         } else if (response.statusCode === 200) {
@@ -90,25 +72,22 @@ function concertThis() {
     })
 }
 
-
-
-
-
-
-
 function spotifyThis() {
 // spotify-this-song
 // Pass the song's name into the API and print Artist(s), Song Name, Preview Link, Album
 
-    console.log("Spotifying this");
+    spotify.search({type: "track", query: input, limit: 1}, function(err, data) {
+        if (err) {
+            return console.log("An error occurred: " + err);
+        }
 
+        console.log("Artist(s): " + data.tracks.items[0].artists[0].name);
+        console.log("Song Name: " + data.tracks.items[0].name);
+        console.log("Preview URL: " + data.tracks.items[0].preview_url);
+        console.log("Album: " + data.tracks.items[0].album.name);
 
-
+    });
 }
-
-
-
-
 
 function movieThis() {
 // movie-this
@@ -144,17 +123,61 @@ function movieThis() {
     })
 }
 
-
-
-
-
-
-
 function doWhatItSays() {
 // do-what-it-says
 // Take the text inside random.txt and do what that says
 
-    console.log("Doing what it says");
+    // console.log("Doing what it says");
+
+    fs.readFile("random.txt", "utf8", function(error, data) {
+
+        // If the code experiences any errors it will log the error to the console.
+        if (error) {
+          return console.log(error);
+        }
+      
+        // We will then print the contents of data
+        console.log(data);
+      
+        // Then split it by commas (to make it more readable)
+        var dataArr = data.split(",");
+      
+        // We will then re-display the content as an array for later use.
+        console.log(dataArr);
+
+        dataArr[1] = dataArr[1].replace(/"/g, "");
+
+        console.log(dataArr)
+
+        input = dataArr[1];
+
+        determine(dataArr[0]);
+      
+      });
 
 
 }
+
+// Collect command line arguments
+if (nodeArgs[2]) {
+    var action = nodeArgs[2];
+}
+
+if (nodeArgs[3]) {
+    var input = "";
+
+    for (var i = 3; i < nodeArgs.length; i++) {
+
+        if (i > 3 && i < nodeArgs.length) {
+
+            input = input + "+" + nodeArgs[i];
+
+        } else {
+
+            input += nodeArgs[i];
+
+        }
+    }
+}
+
+determine(action);
